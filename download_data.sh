@@ -62,10 +62,22 @@ do
   fi
 done
 echo ${not_downloaded}
+
 if [ ${not_downloaded} = true ] ; then
   #downloading sensinble data via scp
-  read -p "username at ${SERVER}:" USERNM;
-  scp ${USERNM}@${SERVER}:"${CFG_FILES_IN}" ${SCP_OUTPUT}
+  # if env variable DUMMYUSER is set to blasinski 
+  # data will be collected from its account
+  # assuming that env variable DUMMYPASS is set correctly
+  if env | grep -q ^DUMMYUSER=blasinski
+  then
+    echo "Usign user ${DUMMYUSER} to collect data"
+    sshpass -p ${DUMMYPASS} scp -r ${DUMMYUSER}@${SERVER}:"${CFG_FILES_IN}" ${SCP_OUTPUT}
+  # if not then user can give his own account and password
+  else
+    read -p "username at ${SERVER}:" USERNM;
+    echo "USER NAME ${USERNM} SERVER ${SERVER} CONFIG FILES ${CFG_FILES_IN} AND SCPOUT ${SCP_OUTPUT}"
+    scp ${USERNM}@${SERVER}:"${CFG_FILES_IN}" ${SCP_OUTPUT}
+  fi
 else
   echo "config files seems to exist!"
   echo "downloading interrupted!"
