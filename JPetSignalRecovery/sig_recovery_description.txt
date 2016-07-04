@@ -1,0 +1,19 @@
+Implementation of signal recovery method
+
+matrices dimensions:
+
+A 	- matrix of size (300 x 45)
+P 	- matrix of size (45  x 45)
+m 	- vector of size (300 x  1)
+
+A, P, m need to be loaded from data-base (a priori information).
+
+omega	- vector of size (8   x  1)
+yb	- vector of size (8   x  1)
+
+omega, yb are from experiment (measured time and voltage). Vectors have the same 
+size equal to 2 * number of thresholds (here 4 thresholds are assumed).
+
+It is assumed the lowest threshold value was equal to -60 mV. This value deterimes the synchronization
+process of signals used to calculate A, P, m.
+Test is based on experimental data which were used to validate the matlab implementation.
