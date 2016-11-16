@@ -15,6 +15,7 @@
 
 #include "JPetTaskExecutor.h"
 #include <cassert>
+#include <stdlib.h>
 #include "../JPetTaskInterface/JPetTaskInterface.h"
 #include "../JPetScopeLoader/JPetScopeLoader.h"
 #include "../JPetTaskLoader/JPetTaskLoader.h"
@@ -104,6 +105,7 @@ bool JPetTaskExecutor::processFromCmdLineArgs(int)
       saver.saveParamBank(fParamManager->getParamBank(), runNum, fOptions.getLocalDBCreate());
     }
   }
+  
   auto inputFileType = fOptions.getInputFileType();
   auto inputFile = fOptions.getInputFile();
   if (inputFileType == JPetOptions::kScope) {
@@ -121,6 +123,28 @@ bool JPetTaskExecutor::processFromCmdLineArgs(int)
     }
     unpackFile();
   }
+  else if( inputFileType == JPetOptions::kZip){
+    INFO( std::string("Unzipping file before unpacking") );
+    unzipFile();
+    //Changing file name to proper one after unzipping
+    std::string  sInputFile = inputFile;
+    sInputFile = sInputFile.substr(0, sInputFile.find(".gz"));
+    
+    inputFile = sInputFile.c_str();
+    // copied from above, since one cannot 
+    long long nevents = fOptions.getTotalEvents();
+    if (nevents > 0) {
+      fUnpacker.setParams( inputFile, nevents);
+      WARNING(std::string("Even though the range of events was set, only the first ") + JPetCommonTools::intToString(nevents) + std::string(" will be unpacked by the unpacker. \n The unpacker always starts from the beginning of the file."));
+    } else {
+      fUnpacker.setParams(inputFile);
+    }
+    fUnpacker.exec();
+  }
+  
+  if(fOptions.getInputFileType() == JPetOptions::kUndefinedFileType)
+    ERROR( Form("Unknown file type provided for file: %s", fOptions.getInputFile()) );
+  
   return true;
 }
 
@@ -146,6 +170,17 @@ void JPetTaskExecutor::unpackFile()
     WARNING("Input file is not hld and unpacker was supposed to be called!");
   }
 }
+
+void JPetTaskExecutor::unzipFile()
+{  
+  if( (fOptions.getInputFileType() == JPetOptions::kZip) ) {
+    system(Form("gzip -d %s", fOptions.getInputFile() ) );   
+  }
+  else {
+    WARNING("Input file is not zip and cannot be unzipped");
+  }
+}
+
 
 JPetTaskExecutor::~JPetTaskExecutor()
 {
