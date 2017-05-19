@@ -48,6 +48,7 @@ std::map<std::string, boost::any> JPetOptionsGenerator::kDefaultOptions = {
 
 JPetOptionsGenerator::JPetOptionsGenerator()
 {
+  fTransformationMap = generateTransformationMap();
 }
 
 bool JPetOptionsGenerator::isOptionSet(const std::map<std::string, boost::any>& optionsMap, const std::string& option) const
@@ -59,10 +60,15 @@ boost::any JPetOptionsGenerator::getOptionValue(const std::map<std::string, boos
 {
   return optionsMap.at(option);
 }
+std::vector<std::string> JPetOptionsGenerator::getVectorOfOptionFromUser() const{
+  return fVectorOfOptionFromUser;
+}
 
 std::pair <std::string, boost::any>JPetOptionsGenerator::appendSlash(boost::any option)
 {
+  //std::cout<< "before append slash: "<<any_cast<std::string>(option) <<std::endl;
   auto path = JPetCommonTools::appendSlashToPathIfAbsent(any_cast<std::string>(option));
+  //std::cout<< "appendSlash: outputPath_std::string: "<< path<<std::endl;
   return std::make_pair("outputPath_std::string", path);
 }
 
@@ -87,10 +93,11 @@ std::pair <std::string, boost::any>JPetOptionsGenerator::getHigherEventBound(boo
 std::pair <std::string, boost::any>JPetOptionsGenerator::setInputFileType(boost::any option)
 {
   auto inputFileType = any_cast<std::string>(option);
+  //std::cout<< "setInputFileType: "<< inputFileType<<std::endl;
   return std::make_pair("inputFileType_std::string", inputFileType);
 }
 
-std::map<std::string, boost::any> JPetOptionsGenerator::variablesMapToOption(const po::variables_map& variablesMap) const
+std::map<std::string, boost::any> JPetOptionsGenerator::variablesMapToOption(const po::variables_map& variablesMap) 
 {
   std::map<std::string, boost::any> optionsMap;
   for (auto & option : variablesMap) {
@@ -109,10 +116,22 @@ std::map<std::string, std::vector<JPetOptionsGenerator::Transformer> > JPetOptio
   return transformationMap;
 }
 
+void JPetOptionsGenerator::addTransformFunction(const std::string& name, Transformer transformFunction)
+{
+  fTransformationMap[name].push_back(transformFunction);
+}
+
+void JPetOptionsGenerator::createMapOfBoolOptionFromUser(const std::map<std::string, boost::any>& optionsMap)
+{
+  for( auto & opt: optionsMap){
+    fVectorOfOptionFromUser.push_back(opt.first);
+  }
+}
+
 std::map<std::string, boost::any> JPetOptionsGenerator::transformOptions(std::map<std::string, boost::any>& optionsMap) const
 {
-  auto transformationMap = generateTransformationMap();
-  for (auto & validGroup : transformationMap) {
+  //auto transformationMap = generateTransformationMap();
+  for (auto & validGroup : fTransformationMap) {
     if (optionsMap.count(validGroup.first)) {
       for (auto & validFunct : validGroup.second) {
         auto transformed = validFunct(optionsMap.at(validGroup.first));
@@ -127,7 +146,7 @@ std::map<std::string, boost::any> JPetOptionsGenerator::transformOptions(std::ma
 /// If the key already exists the element will not be updated.
 void JPetOptionsGenerator::addNewOptionsFromCfgFile(const std::string& cfgFile, std::map<std::string, boost::any>& options) const
 {
-  jpet_options_tools::Options optionsFromJson = jpet_options_tools::createOptionsFromConfigFile(cfgFile);
+  std::map<std::string, boost::any> optionsFromJson = jpet_options_tools::createOptionsFromConfigFile(cfgFile);
   options.insert(optionsFromJson.begin(), optionsFromJson.end());
 }
 
@@ -146,17 +165,20 @@ void JPetOptionsGenerator::addMissingDefaultOptions(std::map<std::string, boost:
   options.insert(defaultOptions.begin(), defaultOptions.end());
 }
 
-std::vector<JPetOptions> JPetOptionsGenerator::generateOptions(const po::variables_map& cmdLineArgs) const
+std::vector<JPetOptions> JPetOptionsGenerator::generateOptions(const po::variables_map& cmdLineArgs)
 {
   auto options = variablesMapToOption(cmdLineArgs);
   auto cfgFileName = getConfigFileName(cmdLineArgs);
   if (!cfgFileName.empty()) {
     addNewOptionsFromCfgFile(cfgFileName, options);
   }
+  createMapOfBoolOptionFromUser(options);
+
   addMissingDefaultOptions(options);
   options = transformOptions(options);
 
-  if (!JPetOptionValidator::areCorrectOptions(options)) {
+  JPetOptionValidator validator;
+  if (!validator.areCorrectOptions(options, fVectorOfOptionFromUser)) {
     throw std::invalid_argument("Wrong user options provided! Check the log!");
   }
 
@@ -164,7 +186,7 @@ std::vector<JPetOptions> JPetOptionsGenerator::generateOptions(const po::variabl
   std::vector<JPetOptions>  optionContainer;
 
   /// @todo change it to be properly initialized
-  JPetOptionsTypeHandler optTypeHandler({"int", "std::string"});
+  JPetOptionsTypeHandler optTypeHandler({"int", "std::string", "bool"});
 
   /// In case of scope there is one special input file
   /// which is a json config file which must be parsed.

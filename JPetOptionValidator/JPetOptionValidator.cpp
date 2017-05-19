@@ -19,13 +19,17 @@
 
 using boost::any_cast;
 
-bool JPetOptionValidator::areCorrectOptions(const std::map<std::string, boost::any>& optionsMap)
+JPetOptionValidator::JPetOptionValidator(){
+  fValidatorMap = generateValidationMap();
+}
+
+bool JPetOptionValidator::areCorrectOptions(const std::map<std::string, boost::any>& optionsMap, std::vector<std::string>& isOption)
 {
-  auto validationMap = generateValidationMap();
-  for (auto & checkGroup : validationMap) {
-    if (optionsMap.count(checkGroup.first) > 0) {
+  //auto validationMap = generateValidationMap();
+  for (auto & checkGroup : fValidatorMap) {
+    if (std::find(isOption.begin(), isOption.end(), checkGroup.first ) != isOption.end()) {
       for (auto & checkFunc : checkGroup.second) {
-        // std::cout<<"areCorrectOptions: "<<checkGroup.first<<std::endl;
+  //       std::cout<<"areCorrectOptions: "<<checkGroup.first<<std::endl;
         if (( !checkFunc(std::make_pair(checkGroup.first, optionsMap.at(checkGroup.first))) )) {
           ERROR("ERROR VALIDATON FOR " + checkGroup.first);
           return false;
@@ -47,6 +51,11 @@ std::map<std::string, std::vector<bool(*)(std::pair <std::string, boost::any>)> 
   validationMap["localDB_std::string"].push_back(&isLocalDBValid);
   validationMap["outputPath_std::string"].push_back(&isOutputDirectoryValid);
   return validationMap;
+}
+
+void JPetOptionValidator::addValidatorFunction(const std::string& name, bool(*validatorFunction)(std::pair <std::string, boost::any>) )
+{
+  fValidatorMap[name].push_back(validatorFunction);
 }
 
 bool JPetOptionValidator::isNumberBoundsInRangeValid(std::pair <std::string, boost::any> option)
@@ -72,7 +81,6 @@ bool JPetOptionValidator::isRangeOfEventsValid(std::pair <std::string, boost::an
 bool JPetOptionValidator::isCorrectFileType(std::pair <std::string, boost::any> option)
 {
   std::string type = any_cast<std::string>(option.second);
-  //std::string type = option.second;
   if (type == "hld" || type == "root" || type == "scope" || type == "zip") {
     return true;
   } else {
