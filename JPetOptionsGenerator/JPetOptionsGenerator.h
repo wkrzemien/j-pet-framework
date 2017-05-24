@@ -28,10 +28,11 @@ class JPetOptionsGenerator;
 #include "boost/program_options.hpp" // Library parsing command line arguments
 #include <boost/any.hpp>
 
-#include "../JPetCmdParser/JPetCmdParser.h"
 #include "../JPetOptions/JPetOptions.h"
 #include "../JPetOption/JPetOption.h"
 #include "../JPetOptionValidator/JPetOptionValidator.h"
+
+namespace po = boost::program_options;
 
 class JPetOptionsGenerator
 {
@@ -68,9 +69,7 @@ public:
   }
   std::vector<std::string> getVectorOfOptionFromUser() const;
 
-  JPetOptionValidator getValidator(){
-    return fValidator;
-  }
+  JPetOptionValidator& getValidator();
 
 protected:
   static std::map<std::string, boost::any> kDefaultOptions;

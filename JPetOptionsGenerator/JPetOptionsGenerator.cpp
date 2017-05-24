@@ -46,7 +46,7 @@ std::map<std::string, boost::any> JPetOptionsGenerator::kDefaultOptions = {
 };
 
 
-JPetOptionsGenerator::JPetOptionsGenerator()
+JPetOptionsGenerator::JPetOptionsGenerator(): fValidator()
 {
   fTransformationMap = generateTransformationMap();
 }
@@ -160,7 +160,9 @@ void JPetOptionsGenerator::addMissingDefaultOptions(std::map<std::string, boost:
   auto defaultOptions = JPetOptionsGenerator::getDefaultOptions();
   options.insert(defaultOptions.begin(), defaultOptions.end());
 }
-
+JPetOptionValidator& JPetOptionsGenerator::getValidator(){
+  return fValidator;
+}
 std::vector<JPetOptions> JPetOptionsGenerator::generateOptions(const po::variables_map& cmdLineArgs)
 {
   auto options = variablesMapToOption(cmdLineArgs);
@@ -173,8 +175,7 @@ std::vector<JPetOptions> JPetOptionsGenerator::generateOptions(const po::variabl
   addMissingDefaultOptions(options);
   options = transformOptions(options);
 
-  JPetOptionValidator validator;
-  if (!validator.areCorrectOptions(options, fVectorOfOptionFromUser)) {
+  if (!fValidator.areCorrectOptions(options, fVectorOfOptionFromUser)) {
     throw std::invalid_argument("Wrong user options provided! Check the log!");
   }
 

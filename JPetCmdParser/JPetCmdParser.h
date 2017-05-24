@@ -36,14 +36,12 @@ public:
   inline const po::options_description getOptionsDescription() const {
     return fOptionsDescriptions;
   }
-  JPetOptionsGenerator& getGenerator(){
-    return fGenerator;
-  }
+  JPetOptionsGenerator& getGenerator();
 protected:
   po::options_description fOptionsDescriptions;
 
 private:
-  JPetOptionsGenerator& fGenerator;
+  JPetOptionsGenerator fGenerator;
   JPetCmdParser(const JPetCmdParser& cmdParser);
   JPetCmdParser& operator=(const JPetCmdParser& cmdParser);
 };

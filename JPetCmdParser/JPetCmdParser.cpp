@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 
-JPetCmdParser::JPetCmdParser(): fOptionsDescriptions("Allowed options")
+JPetCmdParser::JPetCmdParser(): fOptionsDescriptions("Allowed options"), fGenerator()
 {
   fOptionsDescriptions.add_options()
   ("help,h", "Displays this help message.")
@@ -41,6 +41,10 @@ JPetCmdParser::JPetCmdParser(): fOptionsDescriptions("Allowed options")
 JPetCmdParser::~JPetCmdParser()
 {
   /**/
+}
+
+JPetOptionsGenerator& JPetCmdParser::getGenerator(){
+  return fGenerator;
 }
 
 std::vector<JPetOptions> JPetCmdParser::parseAndGenerateOptions(int argc, const char** argv)

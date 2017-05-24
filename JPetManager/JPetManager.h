@@ -43,7 +43,7 @@ public:
   void addValidationFunctionForUserOptions(const std::string& name, bool(*validatorFunction)(std::pair <std::string, boost::any>) );
   void addTransformationFunctionForUserOption(const std::string& name, std::function<std::pair<std::string, boost::any>(boost::any opt)> transformFunction);
 private:
-  JPetManager() {
+  JPetManager(): fParser() {
     fTaskGeneratorChain = new TaskGeneratorChain;
   }
   JPetManager(const JPetManager&);
