@@ -56,7 +56,8 @@ std::map<std::string, boost::any> createOptionsFromConfigFile(const std::string&
       //  std::cout << "Option tree: "<< item.first << std::endl;
         auto key = item.first;
         std::string typeOfOption = typeHandler.getTypeOfOption(key);
-        if(std::find(typeHandler.getAllowedTypes().begin(), typeHandler.getAllowedTypes().end(), typeOfOption) != typeHandler.getAllowedTypes().end()){
+        auto allowedTypes = typeHandler.getAllowedTypes(); 
+        if(std::find(allowedTypes.begin(), allowedTypes.end(), typeOfOption) != allowedTypes.end()){ 
           if(typeOfOption == "int"){
             auto value = item.second.get_value<int>();
       //      std::cout << "value: "<< value << std::endl;

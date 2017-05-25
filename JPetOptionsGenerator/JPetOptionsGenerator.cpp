@@ -25,6 +25,7 @@
 #include "../JPetScopeConfigParser/JPetScopeConfigParser.h"
 #include "../JPetOptionsGenerator/JPetOptionsTypeHandler.h"
 #include "../JPetOptionValidator/JPetOptionValidator.h"
+#include "./JPetAdditionalTransformations.h"
 
 using boost::any_cast;
 using namespace std;

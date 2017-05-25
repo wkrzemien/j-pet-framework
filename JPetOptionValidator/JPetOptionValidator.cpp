@@ -16,6 +16,7 @@
 #include "./JPetOptionValidator.h"
 #include "../JPetCommonTools/JPetCommonTools.h"
 #include "../JPetLoggerInclude.h"
+#include "./JPetAdditionalValidators.cpp"
 
 using boost::any_cast;
 
